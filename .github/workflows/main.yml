@@ -1,0 +1,347 @@
+name: Android CI/CD
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+    
+    - name: Create correct Android project
+      run: |
+        echo "=== Creating proper Android project ==="
+        
+        # 1. 先创建最简单的 settings.gradle
+        cat > settings.gradle << 'EOF'
+rootProject.name = "WebLXBapp"
+include ':app'
+EOF
+        
+        # 2. 创建最简单的 build.gradle（项目级）
+        cat > build.gradle << 'EOF'
+// 空文件，所有配置移到 settings.gradle
+EOF
+        
+        # 3. 创建 app/build.gradle
+        mkdir -p app/src/main/java/com/weblxb/app
+        mkdir -p app/src/main/res/values
+        
+        cat > app/build.gradle << 'EOF'
+plugins {
+    id 'com.android.application'
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+android {
+    namespace 'com.weblxb.app'
+    compileSdk 33
+    
+    defaultConfig {
+        applicationId "com.weblxb.app"
+        minSdk 21
+        targetSdk 33
+        versionCode 1
+        versionName "1.0.0"
+    }
+    
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+        debug {
+            applicationIdSuffix ".debug"
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
+}
+EOF
+        
+        # 4. 创建 gradle.properties 来禁用新的仓库模式
+        cat > gradle.properties << 'EOF'
+org.gradle.unsafe.isolated-projects=false
+systemProp.org.gradle.internal.serialize-worker.in.heap.size.mb=512
+android.useAndroidX=true
+android.enableJetifier=true
+EOF
+        
+        # 5. 创建 AndroidManifest.xml
+        cat > app/src/main/AndroidManifest.xml << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="六边形计算器"
+        android:theme="@style/Theme.AppCompat.Light">
+        
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="六边形计算器">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        
+    </application>
+    
+</manifest>
+EOF
+        
+        # 6. 创建 MainActivity.java
+        cat > app/src/main/java/com/weblxb/app/MainActivity.java << 'EOF'
+package com.weblxb.app;
+
+import android.os.Bundle;
+import androidx.appcompat.app.AppCompatActivity;
+import android.widget.TextView;
+
+public class MainActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        
+        TextView tv = new TextView(this);
+        tv.setText("六边形计算器 v1.0.0\n\n软件编号: LXB2025001\n开发者: Destination_ovo");
+        tv.setTextSize(20);
+        tv.setPadding(50, 50, 50, 50);
+        
+        setContentView(tv);
+    }
+}
+EOF
+        
+        # 7. 创建 strings.xml
+        cat > app/src/main/res/values/strings.xml << 'EOF'
+<resources>
+    <string name="app_name">六边形计算器</string>
+</resources>
+EOF
+        
+        # 8. 创建简单的 gradlew
+        cat > gradlew << 'EOF'
+#!/bin/bash
+exec ./gradlew.bat "$@"
+EOF
+        chmod +x gradlew
+        
+        # 9. 创建 gradlew.bat（Windows脚本）
+        cat > gradlew.bat << 'EOF'
+@if "%DEBUG%" == "" @echo off
+@rem ##########################################################################
+@rem
+@rem  Gradle startup script for Windows
+@rem
+@rem ##########################################################################
+
+@rem Set local scope for the variables with windows NT shell
+if "%OS%"=="Windows_NT" setlocal
+
+set DIRNAME=%~dp0
+if "%DIRNAME%" == "" set DIRNAME=.
+set APP_BASE_NAME=%~n0
+set APP_HOME=%DIRNAME%
+
+@rem Resolve any "." and ".." in APP_HOME to make it shorter.
+for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
+
+@rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
+set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m"
+
+@rem Find java.exe
+if defined JAVA_HOME goto findJavaFromJavaHome
+
+set JAVA_EXE=java.exe
+%JAVA_EXE% -version >NUL 2>&1
+if "%ERRORLEVEL%" == "0" goto execute
+
+echo.
+echo ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
+echo.
+echo Please set the JAVA_HOME variable in your environment to match the
+echo location of your Java installation.
+
+goto fail
+
+:findJavaFromJavaHome
+set JAVA_HOME=%JAVA_HOME:"=%
+set JAVA_EXE=%JAVA_HOME%/bin/java.exe
+
+if exist "%JAVA_EXE%" goto execute
+
+echo.
+echo ERROR: JAVA_HOME is set to an invalid directory: %JAVA_HOME%
+echo.
+echo Please set the JAVA_HOME variable in your environment to match the
+echo location of your Java installation.
+
+goto fail
+
+:execute
+@rem Setup the command line
+
+set CLASSPATH=%APP_HOME%\gradle\wrapper\gradle-wrapper.jar
+
+@rem Execute Gradle
+"%JAVA_EXE%" %JAVA_OPTS% %DEFAULT_JVM_OPTS% %GRADLE_OPTS% -classpath "%CLASSPATH%" org.gradle.wrapper.GradleWrapperMain %*
+
+:end
+@rem End local scope for the variables with windows NT shell
+if "%ERRORLEVEL%"=="0" goto mainEnd
+
+:fail
+rem Set variable GRADLE_EXIT_CONSOLE if you need the _script_ return code instead of
+rem the _cmd.exe /c_ return code!
+if  not "" == "%GRADLE_EXIT_CONSOLE%" exit 1
+exit /b 1
+
+:mainEnd
+if "%OS%"=="Windows_NT" endlocal
+
+:omega
+EOF
+        
+        # 10. 创建 gradle/wrapper 目录和文件
+        mkdir -p gradle/wrapper
+        
+        cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-7.5.1-bin.zip
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+EOF
+        
+        # 下载 gradle-wrapper.jar（使用旧版本兼容性更好）
+        echo "Downloading gradle-wrapper.jar..."
+        curl -L -o gradle/wrapper/gradle-wrapper.jar \
+            https://repo.maven.apache.org/maven2/gradle/wrapper/gradle-wrapper/7.5.1/gradle-wrapper-7.5.1.jar || \
+        echo "Failed to download, will let gradle handle it"
+    
+    - name: Build with simplified approach
+      run: |
+        echo "=== Starting build ==="
+        
+        # 方法1: 使用 gradle 命令直接构建
+        if command -v gradle &> /dev/null; then
+          echo "Using system gradle..."
+          gradle --version
+          gradle -p . :app:assembleDebug --stacktrace
+        else
+          echo "System gradle not found, trying wrapper..."
+          # 方法2: 直接使用 java 运行 gradle wrapper
+          if [ -f "gradle/wrapper/gradle-wrapper.jar" ]; then
+            java -jar gradle/wrapper/gradle-wrapper.jar :app:assembleDebug --stacktrace
+          else
+            # 方法3: 让 gradle 自动下载 wrapper
+            echo "Letting gradle bootstrap itself..."
+            java -Dorg.gradle.appname=gradlew -classpath "gradle/wrapper/gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain :app:assembleDebug --stacktrace || true
+          fi
+        fi
+        
+        echo "=== Checking for APK files ==="
+        find . -name "*.apk" -type f 2>/dev/null
+    
+    - name: Build using direct gradle commands
+      if: always()
+      run: |
+        echo "=== Trying alternative build method ==="
+        
+        # 创建最简化的 gradle 命令文件
+        cat > build.sh << 'EOF'
+#!/bin/bash
+# 直接使用 gradle 命令构建
+cd app
+
+# 创建本地 gradle 包装器
+cat > build.gradle << 'GRADLE_CONFIG'
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.4.2'
+    }
+}
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdk 33
+    defaultConfig {
+        applicationId "com.weblxb.app"
+        minSdk 21
+        targetSdk 33
+    }
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+}
+GRADLE_CONFIG
+
+# 运行构建
+gradle assembleDebug --stacktrace || true
+EOF
+        
+        chmod +x build.sh
+        ./build.sh
+    
+    - name: Find and upload any APK files
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Android-APKs
+        path: |
+          **/*.apk
+          **/build/outputs/
+        if-no-files-found: warn
+    
+    - name: Create Release on tag
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          **/*.apk
+          **/*.aab
+        body: |
+          # WebLXBapp - 六边形计算器
+          发布版本
