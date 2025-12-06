@@ -1,0 +1,85 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:               # 👈 显式授权
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Fix gradlew line endings
+        run: |
+          if [ -f "gradlew" ]; then
+            # 修复Windows换行符问题
+            sed -i 's/\r$//' gradlew
+            echo "Fixed gradlew line endings"
+          fi
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: List APK files
+        run: |
+          echo "=== Generated APK files ==="
+          find app/build/outputs/apk/ -name "*.apk" -type f 2>/dev/null | while read file; do
+            echo "Found: $file"
+            ls -lh "$file"
+          done
+
+      # 只在 push 时发版；PR 时跳过
+      - name: Release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: 六边形计算器 v1.0.${{ github.run_number }}
+          files: app/build/outputs/apk/release/*.apk
+          generate_release_notes: false
+          draft: false
+          prerelease: false
+          body: |
+            # WebLXBapp - 六边形计算器
+            
+            ## 版本信息
+            - 软件名称: 六边形计算器
+            - 软件编号: LXB2025001
+            - 版本: v1.0.${{ github.run_number }}
+            - 开发者: Destination_ovo
+            
+            ## 功能特点
+            - 六边形参数计算
+            - 数据导出功能
+            - 多主题界面切换
+            - 简洁易用的操作界面
+            
+            ## 系统要求
+            - Android 5.0 (API 21) 及以上
+            
+            ## 安装说明
+            1. 下载APK文件
+            2. 在Android设备上安装
+            3. 如需权限请点击允许
+            4. 打开应用开始使用
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
