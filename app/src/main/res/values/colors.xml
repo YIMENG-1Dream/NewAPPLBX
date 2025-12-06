@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- 主题色 -->
+    <color name="colorPrimary">#4b6cb7</color>
+    <color name="colorPrimaryDark">#182848</color>
+    <color name="colorAccent">#758BFD</color>
+    
+    <!-- 背景色 -->
+    <color name="background">#1a1a2e</color>
+    <color name="surface">#2a2a3c</color>
+    
+    <!-- 文字色 -->
+    <color name="text_primary">#e6e6e6</color>
+    <color name="text_secondary">#aaaaaa</color>
+    
+    <!-- 状态色 -->
+    <color name="success">#2ecc71</color>
+    <color name="warning">#f39c12</color>
+    <color name="error">#e74c3c</color>
+    <color name="info">#3498db</color>
+</resources>

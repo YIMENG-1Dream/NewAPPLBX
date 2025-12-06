@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">WebLXBapp</string>
+    <string name="app_name_full">六边形计算器</string>
+    <string name="app_version">版本 1.0.0</string>
+    <string name="app_serial">软件编号: LXB2025001</string>
+    <string name="developer">开发者: Destination_ovo</string>
+    <string name="menu_refresh">刷新</string>
+    <string name="menu_about">关于</string>
+    <string name="menu_export">导出</string>
+    <string name="menu_settings">设置</string>
+    <string name="about_dialog_title">关于六边形计算器</string>
+    <string name="about_dialog_message">
+        软件名称：六边形计算器\n
+        版本：v1.0.0\n
+        软件编号：LXB2025001\n
+        开发者：Destination_ovo\n
+        邮箱：2211717081@qq.com\n\n
+        功能：成绩分析与可视化工具\n
+        支持本地存储、数据导出、多主题切换等功能。
+    </string>
+    <string name="exit_dialog_message">确定要退出应用吗？</string>
+    <string name="ok">确定</string>
+    <string name="cancel">取消</string>
+    <string name="loading">加载中...</string>
+    <string name="data_exported">数据已导出</string>
+    <string name="error_loading">加载失败，请检查网络连接</string>
+</resources>

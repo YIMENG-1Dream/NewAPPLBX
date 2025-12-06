@@ -1,0 +1,2276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多边形计算机 - 成绩分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary-color: #4b6cb7;
+            --secondary-color: #182848;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --success-color: #2ecc71;
+            --info-color: #3498db;
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #2a2a3c;
+            --text-primary: #e6e6e6;
+            --text-secondary: #aaa;
+            --border-color: #444;
+            --grid-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        body[data-theme="light"] {
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --border-color: #ddd;
+            --grid-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 15px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        body[data-theme="light"] .container {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        header {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .header-main {
+            flex: 1;
+            text-align: center;
+            order: 2;
+        }
+        
+        .theme-toggle-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            order: 1;
+        }
+        
+        .theme-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .ui-color-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            order: 3;
+        }
+        
+        .ui-color-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            min-height: 600px;
+        }
+        
+        .input-section {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .chart-section {
+            padding: 15px;
+            min-height: 400px;
+            position: relative;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(117, 139, 253, 0.4);
+            outline: none;
+        }
+        
+        button {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subject-list {
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            background-color: var(--bg-secondary);
+        }
+        
+        .subject-item {
+            padding: 12px 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .subject-item:last-child {
+            border-bottom: none;
+        }
+        
+        .subject-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .subject-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+        
+        .subject-scores {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .score-this {
+            color: var(--primary-color);
+        }
+        
+        .score-last {
+            color: var(--info-color);
+        }
+        
+        .subject-suggestion {
+            font-size: 0.8rem;
+            margin-top: 5px;
+            font-style: italic;
+            padding: 5px 8px;
+            background: rgba(var(--primary-color-rgb), 0.1);
+            border-radius: 4px;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .improvement-good {
+            color: var(--success-color);
+            border-left-color: var(--success-color);
+        }
+        
+        .improvement-warning {
+            color: var(--warning-color);
+            border-left-color: var(--warning-color);
+        }
+        
+        .improvement-danger {
+            color: var(--danger-color);
+            border-left-color: var(--danger-color);
+        }
+        
+        .subject-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .edit-btn {
+            background: var(--info-color);
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            flex: 1;
+        }
+        
+        .edit-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .delete-btn {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            flex: 1;
+        }
+        
+        .delete-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            padding: 12px;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .chart-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .refresh-btn {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            width: auto;
+            margin-top: 0;
+        }
+        
+        .chart-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 10px;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .chart-option-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+        }
+        
+        /* 点击式按钮 */
+        .toggle-btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            border: 2px solid var(--border-color);
+            background-color: var(--bg-secondary);
+            color: var(--text-secondary);
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .toggle-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toggle-btn.active {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 30px 15px;
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 15px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .page-nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+        
+        .page-nav-item {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        
+        .page-nav-item:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .page-nav-item.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+        
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .modal-body {
+            margin: 20px 0;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-actions button {
+            flex: 1;
+            margin-top: 0;
+        }
+        
+        .cancel-btn {
+            background: var(--danger-color) !important;
+        }
+        
+        .cancel-btn:hover {
+            background: #c0392b !important;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .file-actions button {
+            flex: 1;
+            margin-top: 0;
+        }
+        
+        .export-btn {
+            background: var(--success-color);
+        }
+        
+        .export-btn:hover {
+            background: #27ae60;
+        }
+        
+        .import-btn {
+            background: var(--warning-color);
+        }
+        
+        .import-btn:hover {
+            background: #e67e22;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .ui-color-dropdown {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            z-index: 1000;
+            min-width: 150px;
+            display: none;
+        }
+        
+        .ui-color-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+            color: var(--text-primary);
+        }
+        
+        .ui-color-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .ui-color-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* 软件信息样式 */
+        .software-info-section {
+            display: none;
+            padding: 20px;
+        }
+        
+        .software-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .software-option {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-align: left;
+        }
+        
+        .software-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* UI颜色按钮选择样式 */
+        .ui-color-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .ui-color-button {
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: var(--text-primary);
+        }
+        
+        .ui-color-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .ui-color-button.active {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(117, 139, 253, 0.5);
+        }
+        
+        /* 语言选择样式 */
+        .language-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .language-option {
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            text-align: center;
+            color: var(--text-primary);
+        }
+        
+        .language-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .language-option.active {
+            border-color: var(--primary-color);
+            background-color: rgba(117, 139, 253, 0.1);
+            box-shadow: 0 0 10px rgba(117, 139, 253, 0.3);
+        }
+        
+        /* 今日人品样式 */
+        .luck-value {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .luck-date {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        /* 客户端修改样式 */
+        .client-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .client-option {
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            text-align: center;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+        
+        .client-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+                font-size: 16px;
+            }
+            
+            .container {
+                max-width: 900px;
+            }
+            
+            .content {
+                flex-direction: row;
+                min-height: 500px;
+            }
+            
+            .input-section {
+                flex: 1;
+                border-right: 1px solid var(--border-color);
+                border-bottom: none;
+                min-height: 500px;
+            }
+            
+            .chart-section {
+                flex: 1.5;
+                min-height: 500px;
+            }
+            
+            .subject-list {
+                max-height: 350px;
+            }
+            
+            .chart-container {
+                height: 450px;
+            }
+            
+            .header-content {
+                flex-wrap: nowrap;
+            }
+            
+            .theme-toggle-btn {
+                order: 1;
+            }
+            
+            .header-main {
+                order: 2;
+            }
+            
+            .ui-color-btn {
+                order: 3;
+            }
+            
+            .software-info-section {
+                display: none;
+                width: 100%;
+                min-height: 500px;
+            }
+        }
+        
+        @media (max-width: 767px) {
+            .device-specific {
+                display: block;
+            }
+            
+            .header-content {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+            
+            .theme-toggle-btn {
+                order: 1;
+                width: 45px;
+                height: 45px;
+                font-size: 1.3rem;
+            }
+            
+            .header-main {
+                order: 2;
+                width: 100%;
+                margin: 10px 0;
+            }
+            
+            .ui-color-btn {
+                order: 3;
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+            
+            .ui-color-dropdown {
+                top: 70px;
+                right: 50%;
+                transform: translateX(50%);
+                width: 90%;
+            }
+            
+            .subject-list {
+                max-height: 250px;
+            }
+            
+            .content {
+                min-height: auto;
+            }
+            
+            .chart-container {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body data-theme="dark" data-device="unknown">
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <button class="theme-toggle-btn" id="themeToggleBtn">
+                    🌙
+                </button>
+                
+                <div class="header-main">
+                    <h1>多边形计算机</h1>
+                    <p class="subtitle">成绩分析与可视化工具</p>
+                </div>
+                
+                <button class="ui-color-btn" id="uiColorBtn">
+                    🎨
+                </button>
+            </div>
+            
+            <div class="ui-color-dropdown" id="uiColorDropdown">
+                <div class="ui-color-item" data-color="white">白色</div>
+                <div class="ui-color-item" data-color="black">黑色</div>
+                <div class="ui-color-item" data-color="red">红色</div>
+                <div class="ui-color-item" data-color="yellow">黄色</div>
+                <div class="ui-color-item" data-color="orange">橙色</div>
+                <div class="ui-color-item" data-color="green">绿色</div>
+                <div class="ui-color-item" data-color="cyan">青色</div>
+                <div class="ui-color-item" data-color="blue">蓝色</div>
+                <div class="ui-color-item" data-color="purple">紫色</div>
+                <div class="ui-color-item" data-color="brown">棕色</div>
+            </div>
+        </header>
+        
+        <div class="content">
+            <!-- 主页面 -->
+            <div id="mainSection">
+                <div class="input-section">
+                    <div class="form-group">
+                        <label for="subject">科目名称</label>
+                        <input type="text" id="subject" placeholder="例如: 数学">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fullScore">满分</label>
+                        <input type="number" id="fullScore" placeholder="例如: 100" min="1" value="100" step="0.01">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="currentScore">当前分数</label>
+                        <input type="number" id="currentScore" placeholder="例如: 85" min="0" step="0.01">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="scoreTime">成绩时间</label>
+                        <select id="scoreTime" style="appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill="%23333" d="M5.5 7l4.5 4.5L14.5 7z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; background-size: 12px; padding-right: 30px;">
+                            <option value="this">这次成绩</option>
+                            <option value="last">上次成绩</option>
+                        </select>
+                    </div>
+                    
+                    <button id="addSubject">添加/更新科目</button>
+                    
+                    <div class="file-actions device-specific" id="fileActions">
+                        <button class="export-btn" id="exportBtn">导出JSON</button>
+                        <button class="import-btn" id="importBtn">导入JSON</button>
+                    </div>
+                    
+                    <input type="file" id="fileInput" class="file-input" accept=".json">
+                    
+                    <div class="subject-list" id="subjectList">
+                        <div class="no-data">暂无科目数据</div>
+                    </div>
+                    
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalSubjects">0</div>
+                            <div class="stat-label">总科目数</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="averageScore">0</div>
+                            <div class="stat-label">平均分</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalScore">0</div>
+                            <div class="stat-label">总分</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-section">
+                    <div class="chart-controls">
+                        <div>成绩雷达图</div>
+                        <button class="refresh-btn" id="refreshChart">刷新图表</button>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                    
+                    <div class="chart-options">
+                        <div class="chart-option-item">
+                            <span>显示平均成绩</span>
+                            <div class="toggle-btn" id="toggleAverage">开启</div>
+                        </div>
+                        <div class="chart-option-item">
+                            <span>成绩对比</span>
+                            <div class="toggle-btn" id="toggleComparison">关闭</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 软件信息页面 -->
+            <div id="softwareInfoSection" class="software-info-section">
+                <div class="software-options">
+                    <button class="software-option" data-action="version">版本信息</button>
+                    <button class="software-option" data-action="theme">主题色切换</button>
+                    <button class="software-option" data-action="ui">UI色选择</button>
+                    <button class="software-option" data-action="client">客户端修改</button>
+                    <button class="software-option" data-action="author">作者信息</button>
+                    <button class="software-option" data-action="language">语言选择</button>
+                    <button class="software-option" data-action="luck">今日人品</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="page-nav">
+            <button class="page-nav-item active" data-page="main">成绩分析</button>
+            <button class="page-nav-item" data-page="software">软件信息</button>
+        </div>
+        
+        <footer>
+            <p>多边形计算机 © 2025 - Hello I'm Destination_ovo Welcome</p>
+        </footer>
+    </div>
+
+    <!-- 编辑科目模态框 -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">编辑科目</h3>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="editSubject">科目名称</label>
+                    <input type="text" id="editSubject">
+                </div>
+                <div class="form-group">
+                    <label for="editFullScore">满分</label>
+                    <input type="number" id="editFullScore" min="1" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="editCurrentScore">当前分数</label>
+                    <input type="number" id="editCurrentScore" min="0" step="0.01">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="cancel-btn" id="cancelEdit">取消</button>
+                <button id="saveEdit">保存修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设备选择模态框 -->
+    <div class="modal" id="deviceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">选择设备类型</h3>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px; color: var(--text-secondary);">
+                    请选择您正在使用的设备类型，以便我们提供最佳体验：
+                </p>
+            </div>
+            <div class="modal-actions">
+                <button class="cancel-btn" id="cancelDevice">取消</button>
+                <div style="display: flex; gap: 10px; flex: 2;">
+                    <button id="selectPC">电脑用户</button>
+                    <button id="selectMobile">手机用户</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 版本信息模态框 -->
+    <div class="modal" id="versionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">版本信息</h3>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 1.1rem; text-align: center;">当前版本v5.1.3</p>
+            </div>
+            <div class="modal-actions">
+                <button class="cancel-btn" id="closeVersionModal">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- UI色选择模态框 -->
+    <div class="modal" id="uiModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">UI色选择</h3>
+            </div>
+            <div class="modal-body">
+                <div class="ui-color-buttons" id="uiColorList">
+                    <div class="ui-color-button" data-color="white">白色</div>
+                    <div class="ui-color-button" data-color="black">黑色</div>
+                    <div class="ui-color-button" data-color="red">红色</div>
+                    <div class="ui-color-button" data-color="yellow">黄色</div>
+                    <div class="ui-color-button" data-color="orange">橙色</div>
+                    <div class="ui-color-button" data-color="green">绿色</div>
+                    <div class="ui-color-button" data-color="cyan">青色</div>
+                    <div class="ui-color-button" data-color="blue">蓝色</div>
+                    <div class="ui-color-button" data-color="purple">紫色</div>
+                    <div class="ui-color-button" data-color="brown">棕色</div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="cancel-btn" id="closeUiModal">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 客户端修改模态框 -->
+    <div class="modal" id="clientModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">客户端修改</h3>
+            </div>
+            <div class="modal-body">
+                <div class="client-options">
+                    <div class="client-option" data-client="pc">电脑</div>
+                    <div class="client-option" data-client="mobile">手机</div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="cancel-btn" id="closeClientModal">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 作者信息模态框 -->
+    <div class="modal" id="authorModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">作者信息</h3>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 10px; font-size: 1.1rem; text-align: center;">名称 | Destination_ovo</p>
+                <p style="font-size: 1.1rem; text-align: center;">邮箱 | 2211717081@qq.com</p>
+            </div>
+            <div class="modal-actions">
+                <button class="cancel-btn" id="closeAuthorModal">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 语言选择模态框 -->
+    <div class="modal" id="languageModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">语言</h3>
+            </div>
+            <div class="modal-body">
+                <div class="language-options">
+                    <div class="language-option active" data-lang="zh">中文</div>
+                    <div class="language-option" data-lang="en">English</div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="cancel-btn" id="closeLanguageModal">取消</button>
+                <button id="saveLanguage">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 今日人品模态框 -->
+    <div class="modal" id="luckModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">今日人品</h3>
+            </div>
+            <div class="modal-body">
+                <div class="luck-value" id="luckValue">0/100</div>
+                <div class="luck-date" id="luckDate"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="cancel-btn" id="closeLuckModal">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class PolygonCalculator {
+            constructor() {
+                this.subjectsThis = []; // 这次成绩
+                this.subjectsLast = []; // 上次成绩
+                this.chart = null;
+                this.editingSubjectId = null;
+                this.editingTime = 'this';
+                this.currentTheme = 'dark';
+                this.deviceType = localStorage.getItem('deviceType') || 'unknown';
+                this.uiColor = localStorage.getItem('uiColor') || 'blue';
+                this.language = localStorage.getItem('language') || 'zh';
+                this.luckData = JSON.parse(localStorage.getItem('luckData')) || null;
+                
+                // 新增：点击式按钮状态
+                this.showAverage = true;
+                this.showComparison = false;
+                
+                this.initializeElements();
+                this.bindEvents();
+                this.loadFromStorage();
+                this.detectDevice();
+                this.updateUI();
+                this.showDeviceModalIfNeeded();
+                this.updateThemeIcon();
+                this.setUiColor(this.uiColor);
+                this.updateToggleButtons(); // 初始化按钮状态
+                
+                // 初始化页面显示
+                this.switchPage('main');
+            }
+            
+            initializeElements() {
+                this.elements = {
+                    subjectInput: document.getElementById('subject'),
+                    fullScoreInput: document.getElementById('fullScore'),
+                    currentScoreInput: document.getElementById('currentScore'),
+                    scoreTime: document.getElementById('scoreTime'),
+                    addButton: document.getElementById('addSubject'),
+                    subjectList: document.getElementById('subjectList'),
+                    totalSubjects: document.getElementById('totalSubjects'),
+                    averageScore: document.getElementById('averageScore'),
+                    totalScore: document.getElementById('totalScore'),
+                    toggleAverage: document.getElementById('toggleAverage'),
+                    toggleComparison: document.getElementById('toggleComparison'),
+                    refreshChart: document.getElementById('refreshChart'),
+                    body: document.body,
+                    canvas: document.getElementById('radarChart'),
+                    editModal: document.getElementById('editModal'),
+                    editSubject: document.getElementById('editSubject'),
+                    editFullScore: document.getElementById('editFullScore'),
+                    editCurrentScore: document.getElementById('editCurrentScore'),
+                    saveEdit: document.getElementById('saveEdit'),
+                    cancelEdit: document.getElementById('cancelEdit'),
+                    exportBtn: document.getElementById('exportBtn'),
+                    importBtn: document.getElementById('importBtn'),
+                    fileInput: document.getElementById('fileInput'),
+                    fileActions: document.getElementById('fileActions'),
+                    deviceModal: document.getElementById('deviceModal'),
+                    selectPC: document.getElementById('selectPC'),
+                    selectMobile: document.getElementById('selectMobile'),
+                    cancelDevice: document.getElementById('cancelDevice'),
+                    themeToggleBtn: document.getElementById('themeToggleBtn'),
+                    uiColorBtn: document.getElementById('uiColorBtn'),
+                    uiColorDropdown: document.getElementById('uiColorDropdown'),
+                    mainSection: document.getElementById('mainSection'),
+                    softwareInfoSection: document.getElementById('softwareInfoSection'),
+                    pageNavItems: document.querySelectorAll('.page-nav-item'),
+                    softwareOptions: document.querySelectorAll('.software-option'),
+                    versionModal: document.getElementById('versionModal'),
+                    closeVersionModal: document.getElementById('closeVersionModal'),
+                    uiModal: document.getElementById('uiModal'),
+                    closeUiModal: document.getElementById('closeUiModal'),
+                    uiColorButtons: document.querySelectorAll('.ui-color-button'),
+                    clientModal: document.getElementById('clientModal'),
+                    closeClientModal: document.getElementById('closeClientModal'),
+                    clientOptions: document.querySelectorAll('.client-option'),
+                    authorModal: document.getElementById('authorModal'),
+                    closeAuthorModal: document.getElementById('closeAuthorModal'),
+                    languageModal: document.getElementById('languageModal'),
+                    closeLanguageModal: document.getElementById('closeLanguageModal'),
+                    saveLanguage: document.getElementById('saveLanguage'),
+                    luckModal: document.getElementById('luckModal'),
+                    closeLuckModal: document.getElementById('closeLuckModal'),
+                    luckValue: document.getElementById('luckValue'),
+                    luckDate: document.getElementById('luckDate')
+                };
+                
+                this.ctx = this.elements.canvas.getContext('2d');
+            }
+            
+            bindEvents() {
+                this.elements.addButton.addEventListener('click', () => this.addSubject());
+                
+                // 点击式按钮事件
+                this.elements.toggleAverage.addEventListener('click', () => {
+                    this.showAverage = !this.showAverage;
+                    this.updateToggleButtons();
+                    this.updateChart();
+                });
+                
+                this.elements.toggleComparison.addEventListener('click', () => {
+                    // 检查是否可以对比
+                    if (this.subjectsThis.length === this.subjectsLast.length && this.subjectsThis.length > 0) {
+                        this.showComparison = !this.showComparison;
+                        this.updateToggleButtons();
+                        this.updateChart();
+                    } else {
+                        alert('无法进行成绩对比：需要相同数量的这次成绩和上次成绩');
+                    }
+                });
+                
+                this.elements.refreshChart.addEventListener('click', () => this.updateChart());
+                this.elements.saveEdit.addEventListener('click', () => this.saveEdit());
+                this.elements.cancelEdit.addEventListener('click', () => this.closeModal());
+                this.elements.exportBtn.addEventListener('click', () => this.exportData());
+                this.elements.importBtn.addEventListener('click', () => this.elements.fileInput.click());
+                this.elements.fileInput.addEventListener('change', (e) => this.importData(e));
+                this.elements.selectPC.addEventListener('click', () => this.setDeviceType('pc'));
+                this.elements.selectMobile.addEventListener('click', () => this.setDeviceType('mobile'));
+                this.elements.cancelDevice.addEventListener('click', () => this.elements.deviceModal.style.display = 'none');
+                this.elements.themeToggleBtn.addEventListener('click', () => this.toggleTheme());
+                this.elements.uiColorBtn.addEventListener('click', () => this.toggleUiColorDropdown());
+                this.elements.closeVersionModal.addEventListener('click', () => this.elements.versionModal.style.display = 'none');
+                this.elements.closeUiModal.addEventListener('click', () => this.elements.uiModal.style.display = 'none');
+                this.elements.closeClientModal.addEventListener('click', () => this.elements.clientModal.style.display = 'none');
+                this.elements.closeAuthorModal.addEventListener('click', () => this.elements.authorModal.style.display = 'none');
+                this.elements.closeLanguageModal.addEventListener('click', () => this.elements.languageModal.style.display = 'none');
+                this.elements.closeLuckModal.addEventListener('click', () => this.elements.luckModal.style.display = 'none');
+                this.elements.saveLanguage.addEventListener('click', () => {
+                    this.setLanguage(this.selectedLanguage);
+                    this.elements.languageModal.style.display = 'none';
+                });
+                
+                // UI颜色选择下拉菜单
+                this.elements.uiColorDropdown.querySelectorAll('.ui-color-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const color = e.target.dataset.color;
+                        this.setUiColor(color);
+                        this.elements.uiColorDropdown.style.display = 'none';
+                    });
+                });
+                
+                // UI颜色选择按钮（模态框内）
+                if (this.elements.uiColorButtons) {
+                    this.elements.uiColorButtons.forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            const color = e.target.dataset.color;
+                            this.setUiColor(color);
+                            
+                            // 更新按钮选中状态
+                            this.elements.uiColorButtons.forEach(btn => {
+                                btn.classList.remove('active');
+                            });
+                            e.target.classList.add('active');
+                        });
+                    });
+                }
+                
+                // 客户端修改选项
+                if (this.elements.clientOptions) {
+                    this.elements.clientOptions.forEach(option => {
+                        option.addEventListener('click', (e) => {
+                            const clientType = e.target.dataset.client;
+                            this.setDeviceType(clientType);
+                            this.elements.clientModal.style.display = 'none';
+                            alert(`已设置为${clientType === 'pc' ? '电脑' : '手机'}客户端`);
+                        });
+                    });
+                }
+                
+                // 页面导航
+                this.elements.pageNavItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const page = e.target.dataset.page;
+                        this.switchPage(page);
+                    });
+                });
+                
+                // 软件选项
+                this.elements.softwareOptions.forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        const action = e.target.dataset.action;
+                        this.handleSoftwareAction(action);
+                    });
+                });
+                
+                // 语言选项
+                document.querySelectorAll('.language-option').forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        const lang = e.target.dataset.lang;
+                        this.selectedLanguage = lang;
+                        document.querySelectorAll('.language-option').forEach(o => o.classList.remove('active'));
+                        e.target.classList.add('active');
+                    });
+                });
+                
+                // 点击模态框外部关闭
+                this.elements.editModal.addEventListener('click', (e) => {
+                    if (e.target === this.elements.editModal) {
+                        this.closeModal();
+                    }
+                });
+                
+                // 回车键快速添加
+                this.elements.currentScoreInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.addSubject();
+                });
+                
+                // 点击外部关闭UI颜色下拉菜单
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.ui-color-btn') && !e.target.closest('.ui-color-dropdown')) {
+                        this.elements.uiColorDropdown.style.display = 'none';
+                    }
+                });
+            }
+            
+            updateToggleButtons() {
+                // 更新显示平均成绩按钮
+                if (this.elements.toggleAverage) {
+                    if (this.showAverage) {
+                        this.elements.toggleAverage.textContent = this.language === 'en' ? 'ON' : '开启';
+                        this.elements.toggleAverage.classList.add('active');
+                    } else {
+                        this.elements.toggleAverage.textContent = this.language === 'en' ? 'OFF' : '关闭';
+                        this.elements.toggleAverage.classList.remove('active');
+                    }
+                }
+                
+                // 更新成绩对比按钮
+                if (this.elements.toggleComparison) {
+                    // 检查是否可以对比
+                    const canCompare = this.subjectsThis.length === this.subjectsLast.length && this.subjectsThis.length > 0;
+                    
+                    if (canCompare) {
+                        this.elements.toggleComparison.style.opacity = '1';
+                        this.elements.toggleComparison.style.cursor = 'pointer';
+                        
+                        if (this.showComparison) {
+                            this.elements.toggleComparison.textContent = this.language === 'en' ? 'ON' : '开启';
+                            this.elements.toggleComparison.classList.add('active');
+                        } else {
+                            this.elements.toggleComparison.textContent = this.language === 'en' ? 'OFF' : '关闭';
+                            this.elements.toggleComparison.classList.remove('active');
+                        }
+                    } else {
+                        this.elements.toggleComparison.textContent = this.language === 'en' ? 'DISABLED' : '不可用';
+                        this.elements.toggleComparison.classList.remove('active');
+                        this.elements.toggleComparison.style.opacity = '0.5';
+                        this.elements.toggleComparison.style.cursor = 'not-allowed';
+                        this.showComparison = false;
+                    }
+                }
+                
+                // 保存到本地存储
+                this.saveToStorage();
+            }
+            
+            detectDevice() {
+                const userAgent = navigator.userAgent.toLowerCase();
+                const isMobile = /mobile|android|iphone|ipad|phone/i.test(userAgent);
+                const storedDevice = localStorage.getItem('deviceType');
+                
+                if (storedDevice) {
+                    this.deviceType = storedDevice;
+                } else if (isMobile) {
+                    this.deviceType = 'mobile';
+                } else {
+                    this.deviceType = 'pc';
+                }
+                
+                this.applyDeviceSettings();
+            }
+            
+            applyDeviceSettings() {
+                const isPC = this.deviceType === 'pc';
+                this.elements.body.setAttribute('data-device', this.deviceType);
+                
+                if (isPC) {
+                    this.elements.fileActions.style.display = 'flex';
+                } else {
+                    this.elements.fileActions.style.display = 'none';
+                }
+            }
+            
+            showDeviceModalIfNeeded() {
+                if (!localStorage.getItem('deviceType')) {
+                    this.elements.deviceModal.style.display = 'flex';
+                }
+            }
+            
+            setDeviceType(type) {
+                this.deviceType = type;
+                localStorage.setItem('deviceType', type);
+                this.applyDeviceSettings();
+                this.elements.deviceModal.style.display = 'none';
+            }
+            
+            toggleTheme() {
+                this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
+                this.elements.body.setAttribute('data-theme', this.currentTheme);
+                this.updateThemeIcon();
+                this.saveToStorage();
+                this.updateChart();
+            }
+            
+            updateThemeIcon() {
+                const icon = this.currentTheme === 'dark' ? '🌙' : '☀️';
+                this.elements.themeToggleBtn.textContent = icon;
+            }
+            
+            toggleUiColorDropdown() {
+                const currentDisplay = this.elements.uiColorDropdown.style.display;
+                this.elements.uiColorDropdown.style.display = currentDisplay === 'block' ? 'none' : 'block';
+                
+                // 过滤显示的颜色选项
+                const items = this.elements.uiColorDropdown.querySelectorAll('.ui-color-item');
+                items.forEach(item => {
+                    const color = item.dataset.color;
+                    // 根据主题过滤
+                    if ((this.currentTheme === 'dark' && color === 'black') || 
+                        (this.currentTheme === 'light' && color === 'white')) {
+                        item.style.display = 'none';
+                    } else {
+                        item.style.display = 'block';
+                    }
+                });
+            }
+            
+            setUiColor(color) {
+                // 根据主题和颜色名称设置UI颜色
+                let primaryColor, secondaryColor;
+                
+                if (this.currentTheme === 'dark') {
+                    // 深色主题
+                    switch(color) {
+                        case 'white': primaryColor = '#ffffff'; secondaryColor = '#cccccc'; break;
+                        case 'red': primaryColor = '#c62828'; secondaryColor = '#8e0000'; break;
+                        case 'yellow': primaryColor = '#ffcc00'; secondaryColor = '#ff9900'; break;
+                        case 'orange': primaryColor = '#ff9800'; secondaryColor = '#f57c00'; break;
+                        case 'green': primaryColor = '#2e7d32'; secondaryColor = '#1b5e20'; break;
+                        case 'cyan': primaryColor = '#00838f'; secondaryColor = '#006064'; break;
+                        case 'blue': primaryColor = '#1565c0'; secondaryColor = '#0d47a1'; break;
+                        case 'purple': primaryColor = '#8e24aa'; secondaryColor = '#6a1b9a'; break;
+                        case 'brown': primaryColor = '#6d4c41'; secondaryColor = '#4e342e'; break;
+                        default: primaryColor = '#4b6cb7'; secondaryColor = '#182848';
+                    }
+                } else {
+                    // 浅色主题
+                    switch(color) {
+                        case 'black': primaryColor = '#333333'; secondaryColor = '#000000'; break;
+                        case 'red': primaryColor = '#f44336'; secondaryColor = '#d32f2f'; break;
+                        case 'yellow': primaryColor = '#ffeb3b'; secondaryColor = '#fbc02d'; break;
+                        case 'orange': primaryColor = '#ff9800'; secondaryColor = '#f57c00'; break;
+                        case 'green': primaryColor = '#4caf50'; secondaryColor = '#388e3c'; break;
+                        case 'cyan': primaryColor = '#00bcd4'; secondaryColor = '#0097a7'; break;
+                        case 'blue': primaryColor = '#2196f3'; secondaryColor = '#1976d2'; break;
+                        case 'purple': primaryColor = '#9c27b0'; secondaryColor = '#7b1fa2'; break;
+                        case 'brown': primaryColor = '#795548'; secondaryColor = '#5d4037'; break;
+                        default: primaryColor = '#4b6cb7'; secondaryColor = '#182848';
+                    }
+                }
+                
+                // 更新CSS变量
+                document.documentElement.style.setProperty('--primary-color', primaryColor);
+                document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+                
+                this.uiColor = color;
+                localStorage.setItem('uiColor', color);
+                this.updateChart();
+            }
+            
+            switchPage(page) {
+                // 更新导航按钮状态
+                this.elements.pageNavItems.forEach(item => {
+                    if (item.dataset.page === page) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+                
+                // 切换页面显示
+                if (page === 'main') {
+                    this.elements.mainSection.style.display = 'flex';
+                    this.elements.softwareInfoSection.style.display = 'none';
+                } else if (page === 'software') {
+                    this.elements.mainSection.style.display = 'none';
+                    this.elements.softwareInfoSection.style.display = 'block';
+                }
+            }
+            
+            handleSoftwareAction(action) {
+                console.log('处理软件动作:', action);
+                switch(action) {
+                    case 'version':
+                        this.showVersionInfo();
+                        break;
+                    case 'theme':
+                        this.toggleTheme();
+                        break;
+                    case 'ui':
+                        this.showUiColorSelector();
+                        break;
+                    case 'client':
+                        this.showClientModifier();
+                        break;
+                    case 'author':
+                        this.showAuthorInfo();
+                        break;
+                    case 'language':
+                        this.showLanguageSelector();
+                        break;
+                    case 'luck':
+                        this.showLuckValue();
+                        break;
+                }
+            }
+            
+            showVersionInfo() {
+                this.elements.versionModal.style.display = 'flex';
+            }
+            
+            showUiColorSelector() {
+                // 设置当前选中状态
+                if (this.elements.uiColorButtons) {
+                    this.elements.uiColorButtons.forEach(button => {
+                        if (button.dataset.color === this.uiColor) {
+                            button.classList.add('active');
+                        } else {
+                            button.classList.remove('active');
+                        }
+                    });
+                }
+                this.elements.uiModal.style.display = 'flex';
+            }
+            
+            showClientModifier() {
+                this.elements.clientModal.style.display = 'flex';
+            }
+            
+            showAuthorInfo() {
+                this.elements.authorModal.style.display = 'flex';
+            }
+            
+            showLanguageSelector() {
+                this.selectedLanguage = this.language;
+                const languageOptions = document.querySelectorAll('.language-option');
+                languageOptions.forEach(option => {
+                    if (option.dataset.lang === this.language) {
+                        option.classList.add('active');
+                    } else {
+                        option.classList.remove('active');
+                    }
+                });
+                this.elements.languageModal.style.display = 'flex';
+            }
+            
+            showLuckValue() {
+                const today = new Date().toISOString().split('T')[0]; // 获取今天的日期 YYYY-MM-DD
+                
+                // 检查是否有保存的人品数据
+                if (this.luckData && this.luckData.date === today) {
+                    // 今天已经生成过，显示保存的值
+                    this.elements.luckValue.textContent = `${this.luckData.value}/100`;
+                    this.elements.luckDate.textContent = `生成时间: ${today}`;
+                } else {
+                    // 今天第一次生成，生成新值
+                    const randomValue = Math.floor(Math.random() * 100) + 1; // 1-100的随机整数
+                    this.luckData = {
+                        date: today,
+                        value: randomValue
+                    };
+                    localStorage.setItem('luckData', JSON.stringify(this.luckData));
+                    
+                    this.elements.luckValue.textContent = `${randomValue}/100`;
+                    this.elements.luckDate.textContent = `生成时间: ${today}`;
+                }
+                
+                this.elements.luckModal.style.display = 'flex';
+            }
+            
+            setLanguage(lang) {
+                this.language = lang;
+                localStorage.setItem('language', lang);
+                // 更新界面文本
+                if (lang === 'en') {
+                    this.elements.addButton.textContent = 'Add/Update Subject';
+                    this.elements.subjectInput.placeholder = 'e.g.: Math';
+                    document.querySelector('.subtitle').textContent = 'Score Analysis and Visualization Tool';
+                    document.querySelector('.chart-controls div').textContent = 'Score Radar Chart';
+                    this.elements.refreshChart.textContent = 'Refresh Chart';
+                    document.querySelectorAll('.chart-option-item')[0].querySelector('span').textContent = 'Show Average';
+                    document.querySelectorAll('.chart-option-item')[1].querySelector('span').textContent = 'Score Comparison';
+                    this.elements.exportBtn.textContent = 'Export JSON';
+                    this.elements.importBtn.textContent = 'Import JSON';
+                    this.elements.totalScore.previousElementSibling.textContent = 'Total Score';
+                    this.elements.averageScore.previousElementSibling.textContent = 'Average Score';
+                    this.elements.totalSubjects.previousElementSibling.textContent = 'Total Subjects';
+                    document.querySelector('.no-data').textContent = 'No subject data';
+                    // 更新软件信息按钮文本
+                    const softwareButtons = document.querySelectorAll('.software-option');
+                    if (softwareButtons.length >= 7) {
+                        softwareButtons[0].textContent = 'Version Info';
+                        softwareButtons[1].textContent = 'Theme Switch';
+                        softwareButtons[2].textContent = 'UI Color Select';
+                        softwareButtons[3].textContent = 'Client Modify';
+                        softwareButtons[4].textContent = 'Author Info';
+                        softwareButtons[5].textContent = 'Language Select';
+                        softwareButtons[6].textContent = "Today's Luck";
+                    }
+                    // 更新页面导航
+                    this.elements.pageNavItems[0].textContent = 'Score Analysis';
+                    this.elements.pageNavItems[1].textContent = 'Software Info';
+                } else {
+                    this.elements.addButton.textContent = '添加/更新科目';
+                    this.elements.subjectInput.placeholder = '例如: 数学';
+                    document.querySelector('.subtitle').textContent = '成绩分析与可视化工具';
+                    document.querySelector('.chart-controls div').textContent = '成绩雷达图';
+                    this.elements.refreshChart.textContent = '刷新图表';
+                    document.querySelectorAll('.chart-option-item')[0].querySelector('span').textContent = '显示平均成绩';
+                    document.querySelectorAll('.chart-option-item')[1].querySelector('span').textContent = '成绩对比';
+                    this.elements.exportBtn.textContent = '导出JSON';
+                    this.elements.importBtn.textContent = '导入JSON';
+                    this.elements.totalScore.previousElementSibling.textContent = '总分';
+                    this.elements.averageScore.previousElementSibling.textContent = '平均分';
+                    this.elements.totalSubjects.previousElementSibling.textContent = '总科目数';
+                    document.querySelector('.no-data').textContent = '暂无科目数据';
+                    // 更新软件信息按钮文本
+                    const softwareButtons = document.querySelectorAll('.software-option');
+                    if (softwareButtons.length >= 7) {
+                        softwareButtons[0].textContent = '版本信息';
+                        softwareButtons[1].textContent = '主题色切换';
+                        softwareButtons[2].textContent = 'UI色选择';
+                        softwareButtons[3].textContent = '客户端修改';
+                        softwareButtons[4].textContent = '作者信息';
+                        softwareButtons[5].textContent = '语言选择';
+                        softwareButtons[6].textContent = '今日人品';
+                    }
+                    // 更新页面导航
+                    this.elements.pageNavItems[0].textContent = '成绩分析';
+                    this.elements.pageNavItems[1].textContent = '软件信息';
+                }
+                
+                // 更新按钮文本
+                this.updateToggleButtons();
+            }
+            
+            addSubject() {
+                const subjectName = this.elements.subjectInput.value.trim();
+                const fullScore = parseFloat(this.elements.fullScoreInput.value);
+                const currentScore = parseFloat(this.elements.currentScoreInput.value);
+                const timeType = this.elements.scoreTime.value; // 'this' or 'last'
+                
+                if (!this.validateInput(subjectName, fullScore, currentScore)) {
+                    return;
+                }
+                
+                const percentage = this.calculatePercentage(currentScore, fullScore);
+                const subjectData = {
+                    id: Date.now(),
+                    subject: subjectName,
+                    fullScore,
+                    currentScore,
+                    percentage
+                };
+                
+                if (timeType === 'this') {
+                    // 更新这次成绩
+                    const existingIndex = this.subjectsThis.findIndex(s => s.subject === subjectName);
+                    if (existingIndex !== -1) {
+                        this.subjectsThis[existingIndex] = subjectData;
+                    } else {
+                        this.subjectsThis.push(subjectData);
+                    }
+                } else {
+                    // 更新上次成绩
+                    const existingIndex = this.subjectsLast.findIndex(s => s.subject === subjectName);
+                    if (existingIndex !== -1) {
+                        this.subjectsLast[existingIndex] = subjectData;
+                    } else {
+                        this.subjectsLast.push(subjectData);
+                    }
+                }
+                
+                this.clearInputs();
+                this.updateToggleButtons(); // 更新按钮状态
+                this.saveToStorage();
+                this.updateUI();
+            }
+            
+            validateInput(subject, fullScore, currentScore) {
+                if (!subject) {
+                    alert('请输入科目名称');
+                    return false;
+                }
+                
+                if (isNaN(fullScore) || fullScore <= 0) {
+                    alert('请输入有效的满分');
+                    return false;
+                }
+                
+                if (isNaN(currentScore) || currentScore < 0) {
+                    alert('请输入有效的当前分数');
+                    return false;
+                }
+                
+                if (currentScore > fullScore) {
+                    alert('当前分数不能超过满分');
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            calculatePercentage(current, full) {
+                return parseFloat(((current / full) * 100).toFixed(2));
+            }
+            
+            clearInputs() {
+                this.elements.subjectInput.value = '';
+                this.elements.currentScoreInput.value = '';
+                this.elements.subjectInput.focus();
+            }
+            
+            deleteSubject(id, timeType) {
+                if (timeType === 'this') {
+                    this.subjectsThis = this.subjectsThis.filter(subject => subject.id !== id);
+                } else {
+                    this.subjectsLast = this.subjectsLast.filter(subject => subject.id !== id);
+                }
+                this.updateToggleButtons(); // 更新按钮状态
+                this.saveToStorage();
+                this.updateUI();
+            }
+            
+            editSubject(id, timeType) {
+                const subjects = timeType === 'this' ? this.subjectsThis : this.subjectsLast;
+                const subject = subjects.find(s => s.id === id);
+                if (!subject) return;
+                
+                this.editingSubjectId = id;
+                this.editingTime = timeType;
+                this.elements.editSubject.value = subject.subject;
+                this.elements.editFullScore.value = subject.fullScore;
+                this.elements.editCurrentScore.value = subject.currentScore;
+                this.elements.editModal.style.display = 'flex';
+            }
+            
+            saveEdit() {
+                const subjectName = this.elements.editSubject.value.trim();
+                const fullScore = parseFloat(this.elements.editFullScore.value);
+                const currentScore = parseFloat(this.elements.editCurrentScore.value);
+                
+                if (!this.validateInput(subjectName, fullScore, currentScore)) {
+                    return;
+                }
+                
+                const subjects = this.editingTime === 'this' ? this.subjectsThis : this.subjectsLast;
+                const subjectIndex = subjects.findIndex(s => s.id === this.editingSubjectId);
+                if (subjectIndex !== -1) {
+                    subjects[subjectIndex] = {
+                        ...subjects[subjectIndex],
+                        subject: subjectName,
+                        fullScore,
+                        currentScore,
+                        percentage: this.calculatePercentage(currentScore, fullScore)
+                    };
+                    
+                    this.updateToggleButtons(); // 更新按钮状态
+                    this.saveToStorage();
+                    this.updateUI();
+                    this.closeModal();
+                }
+            }
+            
+            closeModal() {
+                this.elements.editModal.style.display = 'none';
+                this.editingSubjectId = null;
+                this.editingTime = 'this';
+            }
+            
+            getImprovementSuggestion(subjectThis, subjectLast) {
+                if (!subjectLast) {
+                    return { text: '首次记录成绩，继续努力！', type: 'info' };
+                }
+                
+                const improvement = subjectThis.percentage - subjectLast.percentage;
+                
+                if (improvement > 10) {
+                    return { text: `进步巨大！提升了${improvement.toFixed(2)}%`, type: 'good' };
+                } else if (improvement > 5) {
+                    return { text: `有明显进步，提升了${improvement.toFixed(2)}%`, type: 'good' };
+                } else if (improvement > 0) {
+                    return { text: `有进步，提升了${improvement.toFixed(2)}%`, type: 'warning' };
+                } else if (improvement === 0) {
+                    return { text: '成绩保持稳定', type: 'warning' };
+                } else if (improvement > -5) {
+                    return { text: `略有退步，下降了${Math.abs(improvement).toFixed(2)}%`, type: 'danger' };
+                } else {
+                    return { text: `退步明显，下降了${Math.abs(improvement).toFixed(2)}%`, type: 'danger' };
+                }
+            }
+            
+            updateUI() {
+                this.updateSubjectList();
+                this.updateStats();
+                this.updateChart();
+                this.updateToggleButtons(); // 更新按钮状态
+            }
+            
+            updateSubjectList() {
+                const container = this.elements.subjectList;
+                
+                if (this.subjectsThis.length === 0 && this.subjectsLast.length === 0) {
+                    if (this.language === 'en') {
+                        container.innerHTML = '<div class="no-data">No subject data</div>';
+                    } else {
+                        container.innerHTML = '<div class="no-data">暂无科目数据</div>';
+                    }
+                    return;
+                }
+                
+                // 合并所有科目名称
+                const allSubjects = new Set();
+                this.subjectsThis.forEach(s => allSubjects.add(s.subject));
+                this.subjectsLast.forEach(s => allSubjects.add(s.subject));
+                
+                const subjectsArray = Array.from(allSubjects);
+                
+                const html = subjectsArray.map(subjectName => {
+                    const subjectThis = this.subjectsThis.find(s => s.subject === subjectName);
+                    const subjectLast = this.subjectsLast.find(s => s.subject === subjectName);
+                    
+                    let suggestion = null;
+                    if (subjectThis && subjectLast) {
+                        suggestion = this.getImprovementSuggestion(subjectThis, subjectLast);
+                    }
+                    
+                    let thisText = '这次';
+                    let lastText = '上次';
+                    let editThisText = '编辑这次';
+                    let editLastText = '编辑上次';
+                    let deleteThisText = '删除这次';
+                    let deleteLastText = '删除上次';
+                    
+                    if (this.language === 'en') {
+                        thisText = 'This';
+                        lastText = 'Last';
+                        editThisText = 'Edit This';
+                        editLastText = 'Edit Last';
+                        deleteThisText = 'Delete This';
+                        deleteLastText = 'Delete Last';
+                    }
+                    
+                    return `
+                        <div class="subject-item">
+                            <div class="subject-info">
+                                <div class="subject-name">${subjectName}</div>
+                                <div class="subject-scores">
+                                    ${subjectThis ? `<span class="score-this">${thisText}: ${subjectThis.currentScore}/${subjectThis.fullScore} (${subjectThis.percentage}%)</span>` : ''}
+                                    ${subjectLast ? `<span class="score-last">${lastText}: ${subjectLast.currentScore}/${subjectLast.fullScore} (${subjectLast.percentage}%)</span>` : ''}
+                                </div>
+                            </div>
+                            ${suggestion ? `<div class="subject-suggestion improvement-${suggestion.type}">${suggestion.text}</div>` : ''}
+                            <div class="subject-actions">
+                                ${subjectThis ? `<button class="edit-btn" data-id="${subjectThis.id}" data-time="this">${editThisText}</button>` : ''}
+                                ${subjectLast ? `<button class="edit-btn" data-id="${subjectLast.id}" data-time="last">${editLastText}</button>` : ''}
+                                ${subjectThis ? `<button class="delete-btn" data-id="${subjectThis.id}" data-time="this">${deleteThisText}</button>` : ''}
+                                ${subjectLast ? `<button class="delete-btn" data-id="${subjectLast.id}" data-time="last">${deleteLastText}</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                container.innerHTML = html;
+                
+                // 重新绑定事件
+                container.querySelectorAll('.edit-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const id = parseInt(e.target.dataset.id);
+                        const timeType = e.target.dataset.time;
+                        this.editSubject(id, timeType);
+                    });
+                });
+                
+                container.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const id = parseInt(e.target.dataset.id);
+                        const timeType = e.target.dataset.time;
+                        const confirmText = this.language === 'en' ? 'Are you sure you want to delete this score?' : '确定要删除这个成绩吗？';
+                        if (confirm(confirmText)) {
+                            this.deleteSubject(id, timeType);
+                        }
+                    });
+                });
+            }
+            
+            updateStats() {
+                const stats = this.calculateStatistics();
+                
+                this.elements.totalSubjects.textContent = this.subjectsThis.length;
+                this.elements.averageScore.textContent = stats.averageScore;
+                this.elements.totalScore.textContent = stats.totalScore;
+            }
+            
+            calculateStatistics() {
+                if (this.subjectsThis.length === 0) {
+                    return { totalSubjects: 0, averageScore: 0, totalScore: 0 };
+                }
+                
+                const totalScore = this.subjectsThis.reduce((sum, subject) => sum + subject.currentScore, 0);
+                const averageScore = (totalScore / this.subjectsThis.length).toFixed(2);
+                
+                return {
+                    totalSubjects: this.subjectsThis.length,
+                    averageScore,
+                    totalScore: totalScore.toFixed(2)
+                };
+            }
+            
+            updateChart() {
+                if (this.chart) {
+                    this.chart.destroy();
+                }
+                
+                if (this.subjectsThis.length === 0 && !this.showComparison) {
+                    return;
+                }
+                
+                const chartData = this.prepareChartData();
+                this.chart = this.createChart(chartData);
+            }
+            
+            prepareChartData() {
+                const labels = this.subjectsThis.map(subject => subject.subject);
+                const percentagesThis = this.subjectsThis.map(subject => subject.percentage);
+                
+                // 获取当前UI颜色
+                const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
+                const secondaryColor = getComputedStyle(document.documentElement).getPropertyValue('--secondary-color').trim();
+                
+                const datasets = [];
+                
+                // 这次成绩数据集
+                if (percentagesThis.length > 0) {
+                    const thisLabel = this.language === 'en' ? 'This Score' : '这次成绩';
+                    datasets.push({
+                        label: thisLabel,
+                        data: percentagesThis,
+                        backgroundColor: this.hexToRgba(primaryColor, 0.2),
+                        borderColor: primaryColor,
+                        borderWidth: 2,
+                        pointBackgroundColor: primaryColor,
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: primaryColor,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    });
+                }
+                
+                // 上次成绩数据集
+                if (this.showComparison && this.subjectsLast.length > 0) {
+                    const percentagesLast = labels.map(label => {
+                        const subject = this.subjectsLast.find(s => s.subject === label);
+                        return subject ? subject.percentage : 0;
+                    });
+                    
+                    const lastLabel = this.language === 'en' ? 'Last Score' : '上次成绩';
+                    datasets.push({
+                        label: lastLabel,
+                        data: percentagesLast,
+                        backgroundColor: this.hexToRgba(secondaryColor, 0.2),
+                        borderColor: secondaryColor,
+                        borderWidth: 2,
+                        pointBackgroundColor: secondaryColor,
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: secondaryColor,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    });
+                }
+                
+                // 平均成绩数据集
+                if (this.showAverage && percentagesThis.length > 0) {
+                    const averagePercentage = percentagesThis.reduce((sum, percentage) => sum + percentage, 0) / percentagesThis.length;
+                    const averageData = Array(labels.length).fill(parseFloat(averagePercentage.toFixed(2)));
+                    
+                    const averageLineColor = this.currentTheme === 'light' ? 'rgba(100, 100, 100, 0.7)' : 'rgba(255, 255, 255, 0.7)';
+                    
+                    const averageLabel = this.language === 'en' ? 'Average Score' : '平均成绩';
+                    datasets.push({
+                        label: averageLabel,
+                        data: averageData,
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        borderColor: averageLineColor,
+                        borderWidth: 1.5,
+                        borderDash: [5, 5],
+                        pointBackgroundColor: averageLineColor,
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: averageLineColor,
+                        pointRadius: 3,
+                        pointHoverRadius: 5
+                    });
+                }
+                
+                return { labels, datasets };
+            }
+            
+            hexToRgba(hex, alpha) {
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            }
+            
+            createChart(chartData) {
+                const textColor = this.currentTheme === 'light' ? '#333' : '#e6e6e6';
+                const gridColor = this.currentTheme === 'light' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.3)';
+                
+                return new Chart(this.ctx, {
+                    type: 'radar',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 500,
+                            easing: 'easeOutQuart'
+                        },
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100,
+                                min: 0,
+                                ticks: {
+                                    stepSize: 20,
+                                    backdropColor: 'transparent',
+                                    color: textColor,
+                                    font: {
+                                        size: 11
+                                    }
+                                },
+                                angleLines: {
+                                    color: gridColor,
+                                    lineWidth: 1
+                                },
+                                grid: {
+                                    color: gridColor,
+                                    circular: true
+                                },
+                                pointLabels: {
+                                    color: textColor,
+                                    font: {
+                                        size: 12,
+                                        weight: '600'
+                                    },
+                                    padding: 15
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: textColor,
+                                    font: {
+                                        size: 12
+                                    },
+                                    padding: 15
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: this.currentTheme === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(42, 42, 60, 0.9)',
+                                titleColor: textColor,
+                                bodyColor: textColor,
+                                borderColor: 'rgba(117, 139, 253, 0.5)',
+                                borderWidth: 1,
+                                callbacks: {
+                                    label: (context) => {
+                                        return `${context.dataset.label}: ${context.parsed.r}%`;
+                                    }
+                                }
+                            }
+                        },
+                        elements: {
+                            line: {
+                                tension: 0.1
+                            }
+                        }
+                    }
+                });
+            }
+            
+            exportData() {
+                if (this.subjectsThis.length === 0 && this.subjectsLast.length === 0) {
+                    alert('没有数据可以导出');
+                    return;
+                }
+                
+                const exportData = {
+                    subjectsThis: this.subjectsThis,
+                    subjectsLast: this.subjectsLast,
+                    theme: this.currentTheme,
+                    deviceType: this.deviceType,
+                    uiColor: this.uiColor,
+                    language: this.language,
+                    luckData: this.luckData,
+                    showAverage: this.showAverage,
+                    showComparison: this.showComparison
+                };
+                
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(dataBlob);
+                link.download = `polygon_data_${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                
+                URL.revokeObjectURL(link.href);
+            }
+            
+            importData(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        this.processImportedData(importedData);
+                    } catch (error) {
+                        alert('文件格式错误，请选择有效的JSON文件');
+                        console.error('导入错误:', error);
+                    }
+                };
+                reader.readAsText(file);
+                
+                event.target.value = '';
+            }
+            
+            processImportedData(importedData) {
+                // 修复导入逻辑：确保即使没有上次成绩也不会报错
+                const subjectsThis = importedData.subjectsThis || [];
+                const subjectsLast = importedData.subjectsLast || [];
+                
+                // 验证数据
+                const validSubjectsThis = subjectsThis.filter(subject => 
+                    subject && subject.subject && subject.fullScore > 0 && 
+                    subject.currentScore >= 0 && subject.currentScore <= subject.fullScore
+                );
+                
+                const validSubjectsLast = subjectsLast.filter(subject => 
+                    subject && subject.subject && subject.fullScore > 0 && 
+                    subject.currentScore >= 0 && subject.currentScore <= subject.fullScore
+                );
+                
+                if (validSubjectsThis.length === 0 && validSubjectsLast.length === 0) {
+                    alert('没有找到有效的科目数据');
+                    return;
+                }
+                
+                const confirmText = `找到 ${validSubjectsThis.length} 个这次成绩和 ${validSubjectsLast.length} 个上次成绩，是否导入？`;
+                if (confirm(confirmText)) {
+                    this.subjectsThis = validSubjectsThis;
+                    this.subjectsLast = validSubjectsLast;
+                    
+                    // 更新主题色（如果有）
+                    if (importedData.theme) {
+                        this.currentTheme = importedData.theme;
+                        this.elements.body.setAttribute('data-theme', this.currentTheme);
+                        this.updateThemeIcon();
+                    }
+                    
+                    // 更新设备类型（如果有）
+                    if (importedData.deviceType) {
+                        this.setDeviceType(importedData.deviceType);
+                    }
+                    
+                    // 更新UI颜色（如果有）
+                    if (importedData.uiColor) {
+                        this.setUiColor(importedData.uiColor);
+                    }
+                    
+                    // 更新语言（如果有）
+                    if (importedData.language) {
+                        this.setLanguage(importedData.language);
+                    }
+                    
+                    // 更新人品数据（如果有）
+                    if (importedData.luckData) {
+                        this.luckData = importedData.luckData;
+                        localStorage.setItem('luckData', JSON.stringify(this.luckData));
+                    }
+                    
+                    // 更新显示设置（如果有）
+                    if (importedData.showAverage !== undefined) {
+                        this.showAverage = importedData.showAverage;
+                    }
+                    
+                    if (importedData.showComparison !== undefined) {
+                        this.showComparison = importedData.showComparison;
+                    }
+                    
+                    this.updateToggleButtons(); // 更新按钮状态
+                    this.saveToStorage();
+                    this.updateUI();
+                    alert('数据导入成功！');
+                }
+            }
+            
+            saveToStorage() {
+                const data = {
+                    subjectsThis: this.subjectsThis,
+                    subjectsLast: this.subjectsLast,
+                    theme: this.currentTheme,
+                    deviceType: this.deviceType,
+                    uiColor: this.uiColor,
+                    language: this.language,
+                    showAverage: this.showAverage,
+                    showComparison: this.showComparison,
+                    luckData: this.luckData
+                };
+                localStorage.setItem('polygonCalculator', JSON.stringify(data));
+            }
+            
+            loadFromStorage() {
+                try {
+                    const data = JSON.parse(localStorage.getItem('polygonCalculator'));
+                    if (data) {
+                        this.subjectsThis = data.subjectsThis || [];
+                        this.subjectsLast = data.subjectsLast || [];
+                        this.currentTheme = data.theme || 'dark';
+                        this.deviceType = data.deviceType || 'unknown';
+                        this.uiColor = data.uiColor || 'blue';
+                        this.language = data.language || 'zh';
+                        this.luckData = data.luckData || null;
+                        
+                        // 加载显示设置
+                        this.showAverage = data.showAverage !== undefined ? data.showAverage : true;
+                        this.showComparison = data.showComparison !== undefined ? data.showComparison : false;
+                        
+                        this.elements.body.setAttribute('data-theme', this.currentTheme);
+                        this.updateThemeIcon();
+                        this.applyDeviceSettings();
+                        this.setUiColor(this.uiColor);
+                        this.setLanguage(this.language);
+                        this.updateToggleButtons(); // 更新按钮状态
+                    }
+                } catch (error) {
+                    console.warn('加载存储数据失败:', error);
+                }
+            }
+        }
+        
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', () => {
+            window.polygonCalculator = new PolygonCalculator();
+        });
+    </script>
+</body>
+</html>
